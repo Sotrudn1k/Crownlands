@@ -1647,6 +1647,8 @@ GameObject:
   - component: {fileID: 4507545826024743524}
   - component: {fileID: 7727257157894395833}
   - component: {fileID: 1011960691002710916}
+  - component: {fileID: 3742274915318469049}
+  - component: {fileID: -3592704329897336593}
   m_Layer: 8
   m_Name: PlayerArmature
   m_TagString: Player
@@ -1682,7 +1684,7 @@ Animator:
   m_GameObject: {fileID: 5879610207327365872}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: 36078ab0369161e49a29d349ae3e0739, type: 3}
-  m_Controller: {fileID: 9100000, guid: 40db3173a05ae3242b1c182a09b0a183, type: 2}
+  m_Controller: {fileID: 9100000, guid: fd8bbc889b717c04f8e445f9b6a7f030, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -1796,6 +1798,7 @@ MonoBehaviour:
   look: {x: 0, y: 0}
   jump: 0
   sprint: 0
+  attack: 0
   analogMovement: 0
   cursorLocked: 1
   cursorInputForLook: 1
@@ -1811,7 +1814,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Actions: {fileID: -944628639613478452, guid: 4419d82f33d36e848b3ed5af4c8da37e, type: 3}
+  m_Actions: {fileID: -944628639613478452, guid: 8f77a1c67c52e594cbdd03b52ae02fd2, type: 3}
   m_NotificationBehavior: 0
   m_UIInputModule: {fileID: 0}
   m_DeviceLostEvent:
@@ -1983,6 +1986,43 @@ MonoBehaviour:
   input: {fileID: 3075594461758885753}
   controller: {fileID: 5789137656288692191}
   followTarget: {fileID: 1077086347376165426}
+--- !u!114 &3742274915318469049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5879610207327365872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2e0f2b274293654cb2ad841b160a330, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Fighting
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  timer: 0
+  anim: {fileID: 0}
+  weapon: {fileID: 11400000, guid: 54f183ad6012b5b43b9a57768ce770e1, type: 2}
+  isBlocking: 0
+  isAttacking: 0
+  stamina: 100
+--- !u!114 &-3592704329897336593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5879610207327365872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 896c74d842880204e884c0ad99d5a802, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  currentHealth: 0
 --- !u!1 &5989762499344709699
 GameObject:
   m_ObjectHideFlags: 0

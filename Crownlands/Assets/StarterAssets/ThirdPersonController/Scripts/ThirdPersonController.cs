@@ -105,7 +105,7 @@ namespace StarterAssets
         private Animator _animator;
         private CharacterController _controller;
         private StarterAssetsInputs _input;
-        private GameObject _mainCamera;
+        public GameObject _mainCamera { get; private set; }
 
         private const float _threshold = 0.01f;
 
