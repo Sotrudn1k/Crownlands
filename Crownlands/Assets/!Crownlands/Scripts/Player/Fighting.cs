@@ -8,16 +8,17 @@ public class Fighting : NetworkBehaviour
     public float timer;
     public Animator anim;
     public WeaponCO weapon;
-    public bool isBlocking;
-    public bool isAttacking;
-
-    public int stamina = 100;
+    [SyncVar] public int stamina = 100;
+    public float lockUntilTime;
 
     StarterAssetsInputs input;
     CharacterController controller;
 
     bool hasDealtDamage;
     bool hasReducedStamina;
+
+    public enum CombatState { Free, Prepare, Attacking, Recover, Blocking }
+    [SyncVar] public CombatState state;
     private void Awake()
     {
         anim = GetComponent<Animator>();
@@ -29,39 +30,79 @@ public class Fighting : NetworkBehaviour
         if (!isLocalPlayer) return;
         if (input.attack)
         {
-            if(isAttacking || isBlocking || stamina < weapon.staminaCostPerAttack) return;
-            CmdAttack();
+            input.attack = false;
+            if (state != CombatState.Free || stamina < weapon.staminaCostPerAttack) return;
+            CmdAttack(); 
+        }
+        if (input.feint)
+        {
+            input.feint = false;
+            CmdFeint();
+        }
+        if(state == CombatState.Free)
+        {
+            timer = 0f;
+            input.block = false;
+            
+            lockUntilTime -= Time.fixedDeltaTime;
         }
     }
     private void FixedUpdate()
     {
         if (!isServer) return;
-        if (!isAttacking) return;
-
+        
         timer += Time.fixedDeltaTime;
+        switch (state)
+        {
+            case CombatState.Prepare:
+                if (timer >= weapon.prepareTime)
+                {
+                    state = CombatState.Attacking;
+                }
+                break;
 
-        if (timer >= weapon.prepareTime && timer < weapon.prepareTime + weapon.attackTime)
-        {
-            TryDealDamage();
-        }
-        if (timer >= weapon.prepareTime + weapon.attackTime + weapon.recoverTime)
-        {
-            timer = 0f;
-            isAttacking = false;
-            input.attack = false;
-            if(!hasReducedStamina) ReduceStamina(weapon.staminaCostPerMiss);
+            case CombatState.Attacking:
+                if (timer >= weapon.prepareTime + weapon.attackTime) state = CombatState.Recover;
+                TryDealDamage();
+                break;
+
+            case CombatState.Recover:
+                if (timer >= weapon.prepareTime + weapon.attackTime + weapon.recoverTime)
+                {
+                    
+                    state = CombatState.Free;
+                    if (!hasReducedStamina) ReduceStamina(weapon.staminaCostPerMiss);
+                }
+                break;
+            case CombatState.Blocking:
+                break;
         }
     }
     [Command]
-    public void CmdAttack()
+    private void CmdFeint()
+    {
+        if(state != CombatState.Prepare) return;
+        anim.SetTrigger("Feint");
+        lockUntilTime = 0.4f;
+        state = CombatState.Free;
+        ReduceStamina(weapon.staminaCostPerAttack);
+    }
+    [Command]
+    private void CmdBlock()
+    {
+
+    }
+    [Command]
+    private void CmdAttack()
     {
         if(weapon == null) return;
+        if (lockUntilTime >= 0) return;
 
         timer = 0f;
-        isAttacking = true;
         hasDealtDamage = false;
+        anim.SetTrigger("Attack");
         hasReducedStamina = false;
-        RpcPlayAttackAnim();
+        state = CombatState.Prepare;
     }
     [Server]
     public void TryDealDamage()
@@ -95,9 +136,13 @@ public class Fighting : NetworkBehaviour
         stamina -= amount;
         hasReducedStamina = true;
     }
-    [ClientRpc]
-    void RpcPlayAttackAnim()
+    private void OnDrawGizmos()
     {
-        if (anim != null) anim.SetTrigger("Attack");
+        Vector3 origin = transform.position;
+        Vector3 offsetWorld = transform.TransformDirection(weapon.hitOffsetLocal);
+        Vector3 center = origin + offsetWorld;
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(center, weapon.radius);
     }
 }

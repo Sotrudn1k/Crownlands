@@ -11,8 +11,10 @@ namespace StarterAssets
 		public Vector2 move;
 		public Vector2 look;
 		public bool jump;
-		public bool sprint;
+		public bool block;
+		public bool feint;
 		public bool attack;
+		public bool sprint;
         [Header("Movement Settings")]
 		public bool analogMovement;
 
@@ -47,9 +49,13 @@ namespace StarterAssets
         {
             AttackInput(value.isPressed);
         }
+		public void OnFeint(InputValue value)
+        {
+            feint = value.isPressed;
+        }
 #endif
 
-		public void AttackInput(bool newAttackState)
+        public void AttackInput(bool newAttackState)
 		{
             attack = newAttackState;
         }

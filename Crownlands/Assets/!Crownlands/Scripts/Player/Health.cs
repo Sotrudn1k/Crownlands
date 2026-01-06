@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class Health : NetworkBehaviour, IDamageable
 {
-    [SyncVar] public int currentHealth;
+    [SyncVar] public int currentHealth = 100;
     int MaxHealth;
 
     [Server]
