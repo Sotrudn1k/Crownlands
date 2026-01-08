@@ -4,7 +4,7 @@ using UnityEngine;
 public class Health : NetworkBehaviour, IDamageable
 {
     [SyncVar] public int currentHealth = 100;
-    int MaxHealth;
+    public int MaxHealth = 100;
 
     [Server]
     public void ServerTakeDamage(int damageAmount, NetworkIdentity Attacker)

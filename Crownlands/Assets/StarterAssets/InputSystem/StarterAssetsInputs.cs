@@ -53,6 +53,10 @@ namespace StarterAssets
         {
             feint = value.isPressed;
         }
+		public void OnBlock(InputValue value)
+        {
+            block = value.isPressed;
+        }
 #endif
 
         public void AttackInput(bool newAttackState)

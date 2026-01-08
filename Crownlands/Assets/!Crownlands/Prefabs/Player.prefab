@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 3064235677046090666}
   - component: {fileID: 3874352883598426889}
   - component: {fileID: 4119662824465671031}
+  - component: {fileID: -7189208141179509474}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -168,8 +169,10 @@ MonoBehaviour:
   move: {x: 0, y: 0}
   look: {x: 0, y: 0}
   jump: 0
-  sprint: 0
+  block: 0
+  feint: 0
   attack: 0
+  sprint: 0
   analogMovement: 0
   cursorLocked: 1
   cursorInputForLook: 1
@@ -334,7 +337,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f6f3bf89aa97405989c802ba270f815, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Mirror.Components::Mirror.NetworkAnimator
-  syncDirection: 1
+  syncDirection: 0
   syncMode: 0
   syncInterval: 0
   clientAuthority: 1
@@ -372,12 +375,17 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  timer: 0
-  anim: {fileID: 0}
   weapon: {fileID: 11400000, guid: 54f183ad6012b5b43b9a57768ce770e1, type: 2}
-  isBlocking: 0
-  isAttacking: 0
+  anim: {fileID: 0}
+  maxStamina: 100
   stamina: 100
+  ClashSound: {fileID: 8300000, guid: 60755b28dbb90134cb3280e01915b0a2, type: 3}
+  HitSound: {fileID: 8300000, guid: f65fe31e94c6c6741953bc981ff6438c, type: 3}
+  regenRate: 10
+  regenDelay: 3
+  lockUntil: 0
+  timer: 0
+  state: 0
 --- !u!114 &4119662824465671031
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -390,10 +398,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 896c74d842880204e884c0ad99d5a802, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  syncDirection: 0
+  syncDirection: 1
   syncMode: 0
   syncInterval: 0
   currentHealth: 100
+  MaxHealth: 100
+--- !u!114 &-7189208141179509474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 15074718626681883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71494f66e367adf49917238746096166, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerUI
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  healthSlider: {fileID: 0}
+  staminaSlider: {fileID: 0}
 --- !u!1 &29096759795888934
 GameObject:
   m_ObjectHideFlags: 0

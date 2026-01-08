@@ -1,57 +1,71 @@
 ﻿using Mirror;
 using UnityEngine;
 using StarterAssets;
-using Mirror.Examples.BilliardsPredicted;
-using UnityEngine.Windows;
 public class Fighting : NetworkBehaviour
 {
-    public float timer;
-    public Animator anim;
     public WeaponCO weapon;
-    [SyncVar] public int stamina = 100;
-    public float lockUntilTime;
+    public Animator anim;
+
+    public float maxStamina = 100;
+    [SyncVar] public float stamina;
+
+    public AudioClip ClashSound;
+    public AudioClip HitSound;
+    [SerializeField] private float regenRate;
+    [SerializeField] private double regenDelay = 3;
+    private double regenBlockedUntil;
 
     StarterAssetsInputs input;
-    CharacterController controller;
 
-    bool hasDealtDamage;
+    [SerializeField] [SyncVar] double lockUntil;
+    [SerializeField] float timer;
+
     bool hasReducedStamina;
-
+    bool hasDealtDamage;
+    bool hasBlocked;
     public enum CombatState { Free, Prepare, Attacking, Recover, Blocking }
     [SyncVar] public CombatState state;
+
     private void Awake()
     {
         anim = GetComponent<Animator>();
         input = GetComponent<StarterAssetsInputs>();
-        controller = GetComponent<CharacterController>();
+        stamina = maxStamina;
     }
     private void Update()
     {
         if (!isLocalPlayer) return;
+        Inputs();
+    }
+    private void FixedUpdate()
+    {
+        if (!isServer) return;
+
+        StateMachine();
+    }
+    private void Inputs()
+    {
         if (input.attack)
         {
             input.attack = false;
             if (state != CombatState.Free || stamina < weapon.staminaCostPerAttack) return;
-            CmdAttack(); 
+            CmdAttack();
         }
         if (input.feint)
         {
             input.feint = false;
             CmdFeint();
         }
-        if(state == CombatState.Free)
+        if (input.block)
         {
-            timer = 0f;
             input.block = false;
-            
-            lockUntilTime -= Time.fixedDeltaTime;
+            CmdBlock(true);
         }
     }
-    private void FixedUpdate()
+    private void StateMachine()
     {
-        if (!isServer) return;
-        
         timer += Time.fixedDeltaTime;
+
         switch (state)
         {
             case CombatState.Prepare:
@@ -67,14 +81,25 @@ public class Fighting : NetworkBehaviour
                 break;
 
             case CombatState.Recover:
+                if (!hasReducedStamina) ReduceStamina(weapon.staminaCostPerMiss);
                 if (timer >= weapon.prepareTime + weapon.attackTime + weapon.recoverTime)
                 {
-                    
-                    state = CombatState.Free;
-                    if (!hasReducedStamina) ReduceStamina(weapon.staminaCostPerMiss);
+                    state = CombatState.Free;   
                 }
                 break;
             case CombatState.Blocking:
+                if (timer >= weapon.blockTime)
+                {
+                    anim.SetBool("Block", false);
+                    state = CombatState.Free;
+                    if (!hasBlocked) lockUntil = NetworkTime.time + 1;
+                }
+                break;
+            case CombatState.Free:
+                if (NetworkTime.time >= regenBlockedUntil && stamina < maxStamina)
+                {
+                    stamina = Mathf.Min(maxStamina, stamina + regenRate * Time.fixedDeltaTime);
+                }
                 break;
         }
     }
@@ -82,27 +107,42 @@ public class Fighting : NetworkBehaviour
     private void CmdFeint()
     {
         if(state != CombatState.Prepare) return;
-        anim.SetTrigger("Feint");
-        lockUntilTime = 0.4f;
-        state = CombatState.Free;
         ReduceStamina(weapon.staminaCostPerAttack);
+        lockUntil = NetworkTime.time + 0.4;
+        state = CombatState.Free;
+        RpcFeintAnim();
+    }
+    [ClientRpc]
+    public void RpcAttackAnim()
+    {
+        anim.SetTrigger("Attack");
+    }
+    [ClientRpc]
+    public void RpcFeintAnim()
+    {
+        anim.SetTrigger("Feint");
     }
     [Command]
-    private void CmdBlock()
+    private void CmdBlock(bool isBlocking)
     {
-
+        if(state != CombatState.Free) return;
+        if (NetworkTime.time < lockUntil) return;
+        timer = 0f;
+        hasBlocked = false;
+        anim.SetBool("Block", true);
+        state = CombatState.Blocking;
     }
     [Command]
     private void CmdAttack()
     {
         if(weapon == null) return;
-        if (lockUntilTime >= 0) return;
+        if (NetworkTime.time < lockUntil) return;
 
         timer = 0f;
-        hasDealtDamage = false;
-        anim.SetTrigger("Attack");
-        hasReducedStamina = false;
         state = CombatState.Prepare;
+        hasReducedStamina = false;
+        hasDealtDamage = false;
+        RpcAttackAnim();
     }
     [Server]
     public void TryDealDamage()
@@ -121,10 +161,23 @@ public class Fighting : NetworkBehaviour
         foreach (var c in hits)
         {
             if (c.transform == transform) continue;
+            if(c.TryGetComponent(out Fighting component))
+            {
+                if (component.state == CombatState.Blocking)
+                {
+                    component.ReduceStamina(component.weapon.blockStaminaCost);
+                    state = CombatState.Recover;
+                    AudioSource.PlayClipAtPoint(ClashSound, transform.forward.normalized);
+                    component.hasBlocked = true;
+                    anim.SetTrigger("Feint");
+                    return;
+                }
+            }
             if (c.TryGetComponent<IDamageable>(out IDamageable damageable))
             {
                 damageable.ServerTakeDamage(weapon.damage, netIdentity);
-                if(!hasReducedStamina) ReduceStamina(weapon.staminaCostPerAttack);
+                AudioSource.PlayClipAtPoint(HitSound, transform.forward.normalized);
+                if (!hasReducedStamina) ReduceStamina(weapon.staminaCostPerAttack);
                 hasDealtDamage = true;
                 // Optionally apply push force here
             }
@@ -133,8 +186,9 @@ public class Fighting : NetworkBehaviour
     [Server]
     public void ReduceStamina(int amount)
     {
-        stamina -= amount;
+        stamina = Mathf.Max(0, stamina - amount); ;
         hasReducedStamina = true;
+        regenBlockedUntil = NetworkTime.time + regenDelay;
     }
     private void OnDrawGizmos()
     {

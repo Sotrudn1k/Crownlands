@@ -20,7 +20,7 @@ MonoBehaviour:
   prepareTime: 0.35
   attackTime: 0.35
   recoverTime: 0.7
-  blockTime: 0.2
+  blockTime: 0.5
   blockStaminaCost: 5
   staminaCostPerMiss: 15
   staminaCostPerAttack: 10
