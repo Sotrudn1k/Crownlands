@@ -7,13 +7,11 @@ public class PlayerSetup : NetworkBehaviour
 {
     public PlayerInput input;
     public ThirdPersonController controller;
-
     [SerializeField] private Transform followTarget;
     public override void OnStartLocalPlayer()
     {
         if (input != null) input.enabled = true;
         if (controller != null) controller.enabled = true;
-
         var vcam = FindAnyObjectByType<CinemachineVirtualCamera>();
         if (vcam != null)
         {

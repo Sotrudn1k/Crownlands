@@ -1,30 +1,37 @@
 using Mirror;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerUI : NetworkBehaviour
 {
-    public Slider healthSlider;
-    public Slider staminaSlider;
+    public TextMeshProUGUI debugText;
+    TextMeshProUGUI killCountText;
+
+    Slider healthSlider;
+    Slider staminaSlider;
 
     Health health;
     Fighting fighting;
     private void Awake()
     {
-        health = GetComponent<Health>();
-        fighting = GetComponent<Fighting>();
         var canvas = FindAnyObjectByType<PlayerCanvas>();
-        healthSlider = canvas.healthSlider;
+        killCountText = canvas.killCountText;
         staminaSlider = canvas.staminaSlider;
+        fighting = GetComponent<Fighting>();
+        healthSlider = canvas.healthSlider;
+        health = GetComponent<Health>();
+        debugText = canvas.debugText;
     }
     private void Start()
     {
-        healthSlider.maxValue = health.MaxHealth;
         staminaSlider.maxValue = fighting.maxStamina;
+        healthSlider.maxValue = health.MaxHealth;
     }
     private void Update()
     {
         if (!isLocalPlayer) return;
+        killCountText.text = "Kills: " + fighting.killCount;
         healthSlider.value = health.currentHealth;
         staminaSlider.value = fighting.stamina;
     }

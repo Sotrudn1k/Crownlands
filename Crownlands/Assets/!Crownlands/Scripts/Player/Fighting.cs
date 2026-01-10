@@ -9,8 +9,9 @@ public class Fighting : NetworkBehaviour
     public float maxStamina = 100;
     [SyncVar] public float stamina;
 
+    [SyncVar] public int killCount;
+
     public AudioClip ClashSound;
-    public AudioClip HitSound;
     [SerializeField] private float regenRate;
     [SerializeField] private double regenDelay = 3;
     private double regenBlockedUntil;
@@ -23,6 +24,7 @@ public class Fighting : NetworkBehaviour
     bool hasReducedStamina;
     bool hasDealtDamage;
     bool hasBlocked;
+
     public enum CombatState { Free, Prepare, Attacking, Recover, Blocking }
     [SyncVar] public CombatState state;
 
@@ -90,7 +92,8 @@ public class Fighting : NetworkBehaviour
             case CombatState.Blocking:
                 if (timer >= weapon.blockTime)
                 {
-                    anim.SetBool("Block", false);
+                    RpcBlockAnim(false);
+                    
                     state = CombatState.Free;
                     if (!hasBlocked) lockUntil = NetworkTime.time + 1;
                 }
@@ -125,12 +128,19 @@ public class Fighting : NetworkBehaviour
     [Command]
     private void CmdBlock(bool isBlocking)
     {
-        if(state != CombatState.Free) return;
+        
+        if (state != CombatState.Free) return;
         if (NetworkTime.time < lockUntil) return;
-        timer = 0f;
+        RpcBlockAnim(isBlocking);
         hasBlocked = false;
-        anim.SetBool("Block", true);
+        timer = 0f;
+        
         state = CombatState.Blocking;
+    }
+    [ClientRpc]
+    public void RpcBlockAnim(bool isBlocking)
+    {
+        if (anim != null) anim.SetBool("Block", isBlocking);
     }
     [Command]
     private void CmdAttack()
@@ -167,26 +177,30 @@ public class Fighting : NetworkBehaviour
                 {
                     component.ReduceStamina(component.weapon.blockStaminaCost);
                     state = CombatState.Recover;
-                    AudioSource.PlayClipAtPoint(ClashSound, transform.forward.normalized);
                     component.hasBlocked = true;
-                    anim.SetTrigger("Feint");
+                    RpcClash();
                     return;
                 }
             }
             if (c.TryGetComponent<IDamageable>(out IDamageable damageable))
             {
                 damageable.ServerTakeDamage(weapon.damage, netIdentity);
-                AudioSource.PlayClipAtPoint(HitSound, transform.forward.normalized);
                 if (!hasReducedStamina) ReduceStamina(weapon.staminaCostPerAttack);
                 hasDealtDamage = true;
                 // Optionally apply push force here
             }
         }
     }
+    [ClientRpc]
+    void RpcClash()
+    {
+        AudioSource.PlayClipAtPoint(ClashSound, transform.position);
+        anim.SetTrigger("Feint");
+    }
     [Server]
     public void ReduceStamina(int amount)
     {
-        stamina = Mathf.Max(0, stamina - amount); ;
+        stamina = Mathf.Max(0, stamina - amount);
         hasReducedStamina = true;
         regenBlockedUntil = NetworkTime.time + regenDelay;
     }

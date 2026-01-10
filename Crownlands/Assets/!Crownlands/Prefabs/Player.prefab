@@ -379,8 +379,8 @@ MonoBehaviour:
   anim: {fileID: 0}
   maxStamina: 100
   stamina: 100
+  killCount: 0
   ClashSound: {fileID: 8300000, guid: 60755b28dbb90134cb3280e01915b0a2, type: 3}
-  HitSound: {fileID: 8300000, guid: f65fe31e94c6c6741953bc981ff6438c, type: 3}
   regenRate: 10
   regenDelay: 3
   lockUntil: 0
@@ -398,11 +398,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 896c74d842880204e884c0ad99d5a802, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  syncDirection: 1
+  syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  currentHealth: 100
   MaxHealth: 100
+  currentHealth: 100
+  HitSound: {fileID: 8300000, guid: f65fe31e94c6c6741953bc981ff6438c, type: 3}
 --- !u!114 &-7189208141179509474
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -418,8 +419,7 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  healthSlider: {fileID: 0}
-  staminaSlider: {fileID: 0}
+  debugText: {fileID: 0}
 --- !u!1 &29096759795888934
 GameObject:
   m_ObjectHideFlags: 0
