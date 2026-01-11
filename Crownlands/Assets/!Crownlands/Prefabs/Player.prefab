@@ -107,7 +107,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MoveSpeed: 2
   SprintSpeed: 5.335
-  RotationSmoothTime: 0.12
+  RotationSmoothTime: 0
   SpeedChangeRate: 10
   LandingAudioClip: {fileID: 8300000, guid: ff697d3070687ce4583faa0561a145a2, type: 3}
   FootstepAudioClips:
@@ -381,7 +381,7 @@ MonoBehaviour:
   stamina: 100
   killCount: 0
   ClashSound: {fileID: 8300000, guid: 60755b28dbb90134cb3280e01915b0a2, type: 3}
-  regenRate: 10
+  regenRate: 20
   regenDelay: 3
   lockUntil: 0
   timer: 0
@@ -827,7 +827,7 @@ Transform:
   m_GameObject: {fileID: 1783973999508047804}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.375, z: 0}
+  m_LocalPosition: {x: 0, y: 1.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
