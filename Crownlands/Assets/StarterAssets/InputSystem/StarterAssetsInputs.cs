@@ -57,6 +57,10 @@ namespace StarterAssets
         {
             block = value.isPressed;
         }
+		public void OnEscape(InputValue value)
+        {
+            Cursor.lockState = CursorLockMode.None;
+        }
 #endif
 
         public void AttackInput(bool newAttackState)
