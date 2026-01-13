@@ -11,19 +11,6 @@ public class SteamMirrorConnectUI : MonoBehaviour
     public TMP_InputField hostSteamIdInputField;
     public GameObject menuPanel;
 
-    private void Start()
-    {
-        if (hostSteamIdInputField != null)
-        {
-            hostSteamIdInputField.text = hostSteamId;
-            hostSteamIdInputField.onEndEdit.AddListener(OnHostSteamIdChanged);
-        }
-    }
-
-    private void OnHostSteamIdChanged(string arg0)
-    {
-        hostSteamId = arg0;
-    }
 
     public void StartHost()
     {
@@ -46,6 +33,8 @@ public class SteamMirrorConnectUI : MonoBehaviour
             Debug.LogError("Steam is not initialized");
             return;
         }
+
+        string hostSteamId = hostSteamIdInputField.text.Trim();
 
         if (string.IsNullOrWhiteSpace(hostSteamId))
         {

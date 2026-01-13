@@ -930,7 +930,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SteamBootstrap
   hostSteamId: 
-  hostSteamIdInputField: {fileID: 0}
+  hostSteamIdInputField: {fileID: 674168313}
   menuPanel: {fileID: 1002756776}
 --- !u!1 &456060358
 GameObject:
