@@ -24,7 +24,7 @@ public class Fighting : NetworkBehaviour
     [SyncVar] bool hasDealtDamage;
     [SyncVar] bool hasBlocked;
 
-    float stunTime = 0.6f;
+    float stunTime = 1.2f;
     double stunUntil;
     public enum CombatState { Free, Prepare, Attacking, Recover, Blocking, Stun }
     [SyncVar] public CombatState state;
