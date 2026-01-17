@@ -133,6 +133,7 @@ public class Fighting : NetworkBehaviour
 
         timer = 0f;
         state = CombatState.Prepare;
+        
         hasReducedStamina = false;
         hasDealtDamage = false;
         RpcAttackAnim();
@@ -204,7 +205,11 @@ public class Fighting : NetworkBehaviour
         if (stamina < weapon.staminaCostPerAttack) return false;
 
         if (state == CombatState.Free) return true;
-        if (state == CombatState.Blocking && hasBlocked) return true;
+        if (state == CombatState.Blocking && hasBlocked)
+        {
+            RpcBlockAnim(false);
+            return true;
+        }
 
         return false;
     }
