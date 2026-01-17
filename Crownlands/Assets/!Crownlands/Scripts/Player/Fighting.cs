@@ -21,9 +21,9 @@ public class Fighting : NetworkBehaviour
     [SerializeField] [SyncVar] double lockUntil;
     [SerializeField] float timer;
 
-    bool hasReducedStamina;
-    bool hasDealtDamage;
-    bool hasBlocked;
+    [SyncVar] bool hasReducedStamina;
+    [SyncVar] bool hasDealtDamage;
+    [SyncVar] bool hasBlocked;
 
     public enum CombatState { Free, Prepare, Attacking, Recover, Blocking }
     [SyncVar] public CombatState state;
@@ -50,7 +50,6 @@ public class Fighting : NetworkBehaviour
         if (input.attack)
         {
             input.attack = false;
-            if (state != CombatState.Free || stamina < weapon.staminaCostPerAttack) return;
             CmdAttack();
         }
         if (input.feint)
@@ -115,16 +114,6 @@ public class Fighting : NetworkBehaviour
         state = CombatState.Free;
         RpcFeintAnim();
     }
-    [ClientRpc]
-    public void RpcAttackAnim()
-    {
-        anim.SetTrigger("Attack");
-    }
-    [ClientRpc]
-    public void RpcFeintAnim()
-    {
-        anim.SetTrigger("Feint");
-    }
     [Command]
     private void CmdBlock(bool isBlocking)
     {
@@ -137,16 +126,10 @@ public class Fighting : NetworkBehaviour
         
         state = CombatState.Blocking;
     }
-    [ClientRpc]
-    public void RpcBlockAnim(bool isBlocking)
-    {
-        if (anim != null) anim.SetBool("Block", isBlocking);
-    }
     [Command]
     private void CmdAttack()
     {
-        if(weapon == null) return;
-        if (NetworkTime.time < lockUntil) return;
+        if (!CanAttack()) return;
 
         timer = 0f;
         state = CombatState.Prepare;
@@ -154,13 +137,26 @@ public class Fighting : NetworkBehaviour
         hasDealtDamage = false;
         RpcAttackAnim();
     }
+    [ClientRpc]
+    public void RpcAttackAnim()
+    {
+        anim.SetTrigger("Attack");
+    }
+    [ClientRpc]
+    public void RpcFeintAnim()
+    {
+        anim.SetTrigger("Feint");
+    }
+    [ClientRpc]
+    public void RpcBlockAnim(bool isBlocking)
+    {
+        if (anim != null) anim.SetBool("Block", isBlocking);
+    }
     [Server]
     public void TryDealDamage()
     {
         if (hasDealtDamage) return;
 
-        // Here you would implement the logic to detect if an enemy is in range and apply damage.
-        // This is a placeholder for demonstration purposes.
 
         Vector3 origin = transform.position;
         Vector3 offsetWorld = transform.TransformDirection(weapon.hitOffsetLocal);
@@ -187,6 +183,9 @@ public class Fighting : NetworkBehaviour
                 damageable.ServerTakeDamage(weapon.damage, netIdentity);
                 if (!hasReducedStamina) ReduceStamina(weapon.staminaCostPerAttack);
                 hasDealtDamage = true;
+                component.RpcFeintAnim();
+                component.state = CombatState.Free;
+                component.lockUntil = NetworkTime.time + 0.3;
                 // Optionally apply push force here
             }
         }
@@ -196,6 +195,18 @@ public class Fighting : NetworkBehaviour
     {
         AudioSource.PlayClipAtPoint(ClashSound, transform.position);
         anim.SetTrigger("Feint");
+    }
+    [Server]
+    private bool CanAttack()
+    {
+        if (weapon == null) return false;
+        if (NetworkTime.time < lockUntil) return false;
+        if (stamina < weapon.staminaCostPerAttack) return false;
+
+        if (state == CombatState.Free) return true;
+        if (state == CombatState.Blocking && hasBlocked) return true;
+
+        return false;
     }
     [Server]
     public void ReduceStamina(int amount)
