@@ -10,7 +10,6 @@ public class Fighting : NetworkBehaviour
     [SyncVar] public float stamina;
 
     [SyncVar] public int killCount;
-
     public AudioClip ClashSound;
     [SerializeField] private float regenRate;
     [SerializeField] private double regenDelay = 3;
@@ -25,7 +24,9 @@ public class Fighting : NetworkBehaviour
     [SyncVar] bool hasDealtDamage;
     [SyncVar] bool hasBlocked;
 
-    public enum CombatState { Free, Prepare, Attacking, Recover, Blocking }
+    float stunTime = 0.6f;
+    double stunUntil;
+    public enum CombatState { Free, Prepare, Attacking, Recover, Blocking, Stun }
     [SyncVar] public CombatState state;
 
     private void Awake()
@@ -70,10 +71,7 @@ public class Fighting : NetworkBehaviour
         switch (state)
         {
             case CombatState.Prepare:
-                if (timer >= weapon.prepareTime)
-                {
-                    state = CombatState.Attacking;
-                }
+                if (timer >= weapon.prepareTime) state = CombatState.Attacking;
                 break;
 
             case CombatState.Attacking:
@@ -83,10 +81,8 @@ public class Fighting : NetworkBehaviour
 
             case CombatState.Recover:
                 if (!hasReducedStamina) ReduceStamina(weapon.staminaCostPerMiss);
-                if (timer >= weapon.prepareTime + weapon.attackTime + weapon.recoverTime)
-                {
-                    state = CombatState.Free;   
-                }
+                if (timer >= weapon.prepareTime + weapon.attackTime + weapon.recoverTime) state = CombatState.Free;   
+                
                 break;
             case CombatState.Blocking:
                 if (timer >= weapon.blockTime)
@@ -97,11 +93,12 @@ public class Fighting : NetworkBehaviour
                     if (!hasBlocked) lockUntil = NetworkTime.time + 1;
                 }
                 break;
+            case CombatState.Stun:
+                if(NetworkTime.time >= stunUntil) state = CombatState.Free;
+                break;
             case CombatState.Free:
-                if (NetworkTime.time >= regenBlockedUntil && stamina < maxStamina)
-                {
-                    stamina = Mathf.Min(maxStamina, stamina + regenRate * Time.fixedDeltaTime);
-                }
+                if (NetworkTime.time >= regenBlockedUntil && stamina < maxStamina) stamina = Mathf.Min(maxStamina, stamina + regenRate * Time.fixedDeltaTime);
+                
                 break;
         }
     }
@@ -168,13 +165,13 @@ public class Fighting : NetworkBehaviour
         foreach (var c in hits)
         {
             if (c.transform == transform) continue;
-            if(c.TryGetComponent(out Fighting component))
+            if(c.TryGetComponent(out Fighting target))
             {
-                if (component.state == CombatState.Blocking)
+                if (target.state == CombatState.Blocking)
                 {
-                    component.ReduceStamina(component.weapon.blockStaminaCost);
+                    target.ReduceStamina(target.weapon.blockStaminaCost);
                     state = CombatState.Recover;
-                    component.hasBlocked = true;
+                    target.hasBlocked = true;
                     RpcClash();
                     return;
                 }
@@ -184,10 +181,9 @@ public class Fighting : NetworkBehaviour
                 damageable.ServerTakeDamage(weapon.damage, netIdentity);
                 if (!hasReducedStamina) ReduceStamina(weapon.staminaCostPerAttack);
                 hasDealtDamage = true;
-                component.RpcFeintAnim();
-                component.state = CombatState.Free;
-                component.lockUntil = NetworkTime.time + 0.3;
-                // Optionally apply push force here
+                target.RpcFeintAnim();
+                target.stunUntil = NetworkTime.time + stunTime;
+                target.state = CombatState.Stun;
             }
         }
     }
