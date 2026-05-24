@@ -15,7 +15,7 @@ public class Fighting : NetworkBehaviour
     [SerializeField] private double regenDelay = 3;
     private double regenBlockedUntil;
 
-    StarterAssetsInputs input;
+    PlayerInputs input;
 
     [SerializeField] [SyncVar] double lockUntil;
     [SerializeField] float timer;
@@ -32,7 +32,7 @@ public class Fighting : NetworkBehaviour
     private void Awake()
     {
         anim = GetComponent<Animator>();
-        input = GetComponent<StarterAssetsInputs>();
+        input = GetComponent<PlayerInputs>();
         stamina = maxStamina;
     }
     private void Update()

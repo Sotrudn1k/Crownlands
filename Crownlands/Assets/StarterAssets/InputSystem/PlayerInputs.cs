@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 namespace StarterAssets
 {
-	public class StarterAssetsInputs : MonoBehaviour
+	public class PlayerInputs : MonoBehaviour
 	{
 		[Header("Character Input Values")]
 		public Vector2 move;
@@ -15,6 +15,7 @@ namespace StarterAssets
 		public bool feint;
 		public bool attack;
 		public bool sprint;
+		public bool kingdomMenu;
         [Header("Movement Settings")]
 		public bool analogMovement;
 
@@ -61,6 +62,10 @@ namespace StarterAssets
         {
             Cursor.lockState = CursorLockMode.None;
         }
+		public void OnKingdomMenu(InputValue value)
+        {
+            KingdomMenuUI.Instance.Toggle();
+        }
 #endif
 
         public void AttackInput(bool newAttackState)
@@ -96,6 +101,10 @@ namespace StarterAssets
 		{
 			Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
 		}
-	}
+		private void KingdomMenu(bool newKingdomMenuState)
+        {
+            kingdomMenu = newKingdomMenuState;
+        }
+    }
 	
 }

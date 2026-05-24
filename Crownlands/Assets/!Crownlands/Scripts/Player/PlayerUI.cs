@@ -13,6 +13,8 @@ public class PlayerUI : NetworkBehaviour
 
     Health health;
     Fighting fighting;
+    KingdomMenuUI kingdomMenuUI;
+
     private void Awake()
     {
         var canvas = FindAnyObjectByType<PlayerCanvas>();
