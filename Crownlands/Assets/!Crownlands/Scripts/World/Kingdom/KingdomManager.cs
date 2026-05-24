@@ -12,7 +12,6 @@ public class KingdomManager : NetworkBehaviour
     {
         instance = this;
     }
-
     [Server]
     public void CreateKingdom(PlayerKingdom creator, string kingdomName, byte kingdomColorId)
     {
@@ -27,7 +26,8 @@ public class KingdomManager : NetworkBehaviour
         kingdoms.Add(newKingdomID, newKingdom);
         creator.kingdomID = newKingdomID;
 
-        RpcUpdateKingdomList();
+        KingdomInfo[] infos = GetKingdomInfos();
+        RpcUpdateKingdomList(infos);
     }
 
     private KingdomInfo[] GetKingdomInfos()
@@ -68,9 +68,9 @@ public class KingdomManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcUpdateKingdomList()
+    public void RpcUpdateKingdomList(KingdomInfo[] infos)
     {
-        KingdomMenuUI.Instance.RefreshList(GetKingdomInfos());
+        KingdomMenuUI.Instance.RefreshList(infos);
     }
 
     [ClientRpc]
