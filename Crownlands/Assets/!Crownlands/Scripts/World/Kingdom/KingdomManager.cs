@@ -27,7 +27,7 @@ public class KingdomManager : NetworkBehaviour
         kingdoms.Add(newKingdomID, newKingdom);
         creator.kingdomID = newKingdomID;
 
-        KingdomMenuUI.Instance.RefreshList(GetKingdomInfos());
+        RpcUpdateKingdomList();
     }
 
     private KingdomInfo[] GetKingdomInfos()
@@ -51,8 +51,7 @@ public class KingdomManager : NetworkBehaviour
     {
         if (kingdoms.ContainsKey(kingdomID))
         {
-            kingdoms[kingdomID].memberIDs.Add(player.netId);
-            player.kingdomID = kingdomID;
+            RpcUpdatePlayerKingdom(player, kingdomID);
         }
     }
     [Server]
@@ -67,8 +66,22 @@ public class KingdomManager : NetworkBehaviour
             player.kingdomID = 0;
         }
     }
+
+    [ClientRpc]
+    public void RpcUpdateKingdomList()
+    {
+        KingdomMenuUI.Instance.RefreshList(GetKingdomInfos());
+    }
+
+    [ClientRpc]
+    public void RpcUpdatePlayerKingdom(PlayerKingdom player, uint kingdomId)
+    {
+        // This can be used to update the player's kingdom info on the client side if needed
+        kingdoms[kingdomId].memberIDs.Add(player.netId);
+        player.kingdomID = kingdomId;
+    }
 }
-public class KingdomData
+    public class KingdomData
 {
     public byte kingdomColorId;
     public string kingdomName;
