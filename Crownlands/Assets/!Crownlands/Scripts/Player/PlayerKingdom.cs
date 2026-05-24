@@ -18,19 +18,16 @@ public class PlayerKingdom : NetworkBehaviour
     [Command]
     public void CmdCreateKingdom(string kingdomName, byte kingdomColorId)
     {
-        if(!isLocalPlayer) return;
         KingdomManager.instance.CreateKingdom(this, kingdomName, kingdomColorId);
     }
     [Command]
     public void CmdJoinKingdom(uint kingdomID)
     {
-        if (!isLocalPlayer) return;
         KingdomManager.instance.JoinKingdom(this, kingdomID);
     }
     [Command]
     public void CmdLeaveKingdom()
     {
-        if (!isLocalPlayer) return;
         KingdomManager.instance.LeaveKingdom(this);
     }
 }
