@@ -18,6 +18,7 @@ public class PlayerKingdom : NetworkBehaviour
     [Command]
     public void CmdCreateKingdom(string kingdomName, byte kingdomColorId)
     {
+        if(kingdomID != 0) { return; } // Already in a kingdom
         KingdomManager.instance.CreateKingdom(this, kingdomName, kingdomColorId);
     }
     [Command]

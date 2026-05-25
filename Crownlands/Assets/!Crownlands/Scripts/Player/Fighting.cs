@@ -15,10 +15,10 @@ public class Fighting : NetworkBehaviour
     [SerializeField] private double regenDelay = 3;
     private double regenBlockedUntil;
 
-    PlayerInputs input;
-
     [SerializeField] [SyncVar] double lockUntil;
     [SerializeField] float timer;
+    PlayerKingdom myKingdom;
+    PlayerInputs input;
 
     [SyncVar] bool hasReducedStamina;
     [SyncVar] bool hasDealtDamage;
@@ -33,6 +33,7 @@ public class Fighting : NetworkBehaviour
     {
         anim = GetComponent<Animator>();
         input = GetComponent<PlayerInputs>();
+        myKingdom = GetComponent<PlayerKingdom>();
         stamina = maxStamina;
     }
     private void Update()
@@ -165,7 +166,7 @@ public class Fighting : NetworkBehaviour
         foreach (var c in hits)
         {
             if (c.transform == transform) continue;
-            if(c.TryGetComponent(out Fighting target))
+            if (c.TryGetComponent(out Fighting target))
             {
                 if (target.state == CombatState.Blocking)
                 {
@@ -174,6 +175,10 @@ public class Fighting : NetworkBehaviour
                     target.hasBlocked = true;
                     RpcClash();
                     return;
+                }
+                if (target.TryGetComponent(out PlayerKingdom targetPk))
+                {
+                    if (targetPk.kingdomID == myKingdom.kingdomID && targetPk.kingdomID != 0) continue; // friendly fire
                 }
             }
             if (c.TryGetComponent<IDamageable>(out IDamageable damageable))
